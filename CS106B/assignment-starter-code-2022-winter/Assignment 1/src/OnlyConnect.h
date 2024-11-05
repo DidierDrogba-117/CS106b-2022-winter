@@ -10,6 +10,7 @@
 #define OnlyConnect_Included
 
 #include <string>
+#include <vector>   // Include the vector header
 
 /**
  * Given a string, converts that string into an Only Connect puzzle by deleting all
@@ -19,5 +20,7 @@
  * @return That string, rendered as an Only Connect puzzle.
  */
 std::string onlyConnectize(std::string phrase);
+void helper(const char *ptr, std::string &res, const std::vector<char>& consonants);
+bool isConsonant(char curr_ch, const std::vector<char>& consonants);
 
 #endif
