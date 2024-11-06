@@ -3,6 +3,8 @@
         "chrono": "cpp",
         "functional": "cpp",
         "string": "cpp",
-        "charconv": "cpp"
+        "charconv": "cpp",
+        "*.tcc": "cpp",
+        "format": "cpp"
     }
 }

@@ -8,15 +8,20 @@
 using namespace std;
 
 string aSequenceOfOrder(int n) {
-    /* TODO: Delete this line and the next two lines, then implement this function. */
-    (void) n;
-    return "";
+    if (n < 0) {error("Order cannot be negative.");}
+    // base case 
+    if (n == 0) {return "A";}
+    // general case 
+    return aSequenceOfOrder(n-1) + bSequenceOfOrder(n-1);
+
 }
 
 string bSequenceOfOrder(int n) {
-    /* TODO: Delete this line and the next two lines, then implement this function. */
-    (void) n;
-    return "";
+    if (n < 0) {error("Order cannot be negative.");}
+    // base case 
+    if (n == 0) {return "B";}
+    // general case 
+    return bSequenceOfOrder(n-1) + aSequenceOfOrder(n-1);
 }
 
 
@@ -76,6 +81,31 @@ PROVIDED_TEST("Triggers error on negative inputs.") {
  *
  * Happy testing!
  */
+
+STUDENT_TEST("Sequences of order 4 are correct.") {
+    EXPECT_EQUAL(aSequenceOfOrder(4), "ABBABAABBAABABBA");
+    EXPECT_EQUAL(bSequenceOfOrder(4), "BAABABBAABBABAAB");
+}
+
+STUDENT_TEST("Length of sequences is correct.") {
+    for (int n = 0; n <= 10; ++n) {
+        EXPECT_EQUAL(aSequenceOfOrder(n).length(), 1 << n); // 1 << n is 2^n
+        EXPECT_EQUAL(bSequenceOfOrder(n).length(), 1 << n);
+    }
+}
+
+STUDENT_TEST("Sequences follow the concatenation property.") {
+    for (int n = 1; n <= 10; ++n) {
+        EXPECT_EQUAL(aSequenceOfOrder(n), aSequenceOfOrder(n - 1) + bSequenceOfOrder(n - 1));
+        EXPECT_EQUAL(bSequenceOfOrder(n), bSequenceOfOrder(n - 1) + aSequenceOfOrder(n - 1));
+    }
+}
+
+STUDENT_TEST("Error handling for negative inputs.") {
+    EXPECT_ERROR(aSequenceOfOrder(-1));
+    EXPECT_ERROR(bSequenceOfOrder(-1));
+}
+
 
 
 

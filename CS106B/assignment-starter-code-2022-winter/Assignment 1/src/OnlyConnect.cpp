@@ -26,7 +26,7 @@ string onlyConnectize(string phrase)
         then b need to be added before c -> res: bc
     */
 
-    const char *ptr = phrase.c_str();
+    const char *ptr = phrase.c_str(); // cannot use &phrase 
     string res = "";
     helper(ptr, res, consonants);
     cout << res << endl;
