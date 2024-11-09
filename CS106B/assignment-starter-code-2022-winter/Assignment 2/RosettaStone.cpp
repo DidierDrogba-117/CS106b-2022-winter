@@ -1,119 +1,209 @@
 #include "RosettaStone.h"
 #include "GUI/SimpleTest.h"
+#include "priorityqueue.h"
+#include "queue.h"
 using namespace std;
 
-Map<string, double> kGramsIn(const string& str, int kGramLength) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
-     */
-    (void) str;
-    (void) kGramLength;
-    return {};
+Map<string, double> kGramsIn(const string &str, int kGramLength)
+{
+    // edge cases
+    if (kGramLength <= 0)
+    {
+        error("kGramsIn: kGramLength must be positive");
+    }
+    Map<string, double> gram_to_count;
+    int n = str.size();
+
+    if (n < kGramLength)
+    {
+        return gram_to_count;
+    }
+    for (int i = 0; i < n - kGramLength + 1; i++)
+    {
+        string gram = str.substr(i, kGramLength);
+        gram_to_count[gram]++;
+    }
+    return gram_to_count;
 }
 
-Map<string, double> normalize(const Map<string, double>& input) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
-     */
-    (void) input;
-    return {};
+Map<string, double> normalize(const Map<string, double> &input)
+{
+    // edge case
+    if (input.size() == 0)
+    {
+        error("normalize: input map is empty");
+    }
+    double sum = 0.0;
+
+    for (const string &key : input)
+    {
+        sum += input[key] * input[key];
+    }
+
+    if (sum < 1e-9)
+    {
+        error("normalize: all values are zero");
+    }
+
+    double norm = sqrt(sum);
+
+    Map<string, double> result;
+
+    for (const string &k : input)
+    {
+        result[k] = input[k] / norm;
+    }
+
+    return result;
 }
 
-Map<string, double> topKGramsIn(const Map<string, double>& source, int numToKeep) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
-     */
-    (void) source;
-    (void) numToKeep;
-    return {};
+Map<string, double> topKGramsIn(const Map<string, double> &source, int numToKeep)
+{
+    // edge cases
+    if (numToKeep < 0)
+    {
+        error("topKGramsIn: numToKeep must be non-negative");
+    }
+    Map<string, double> res;
+    if (numToKeep == 0)
+    {
+        return res;
+    }
+    if (numToKeep >= source.size())
+    {
+        return source;
+    }
+
+    PriorityQueue<string> pq;
+    int count = 0;
+
+    for (const string &k : source)
+    {
+
+        pq.enqueue(k, source[k]);
+        count++;
+    }
+
+    // dequeue
+    while (count > numToKeep)
+    {
+        pq.dequeue();
+        count--;
+    }
+
+    // traverse the priority queue, and store all of them in res
+    for (int i = 0; i < numToKeep; i++)
+    {
+        string k = pq.dequeue();
+        res[k] = source[k];
+    }
+
+    return res;
 }
 
-double cosineSimilarityOf(const Map<string, double>& lhs, const Map<string, double>& rhs) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
-     */
-    (void) lhs;
-    (void) rhs;
-    return {};
-}
+double cosineSimilarityOf(const Map<string, double> &lhs, const Map<string, double> &rhs)
+{
+    // edge cases
 
-string guessLanguageOf(const Map<string, double>& textProfile,
-                       const Set<Corpus>& corpora) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
-     */
-    (void) textProfile;
-    (void) corpora;
-    return "";
+    double sum = 0.0;
+
+    for (const string &key : lhs) {
+        if (rhs.containsKey(key)) {
+            sum += lhs[key] * rhs[key];
+        }
+    }
+
+    return sum;
 }
 
 
 
+
+
+
+string guessLanguageOf(const Map<string, double> &textProfile,
+                       const Set<Corpus> &corpora)
+{
+    // edge cases
+    if (corpora.isEmpty()) {error("guessLanguageOf: corpora is empty");}
+
+    string res;
+    double max = -1.0;
+
+    for (const Corpus &c : corpora) {
+        double curr_sim = cosineSimilarityOf(textProfile, c.profile);
+        if (curr_sim > max) {
+            max = curr_sim; 
+            res = c.name;
+        }
+    }
+
+
+    return res;
+}
 
 /* * * * *   Test Cases Below This Point   * * * * */
 
-
-
-
-PROVIDED_TEST("kGramsIn works when the text length exactly matches the k-gram length.") {
+PROVIDED_TEST("kGramsIn works when the text length exactly matches the k-gram length.")
+{
     Map<string, double> expected = {
-        { "^_^", 1 }
-    };
+        {"^_^", 1}};
 
     EXPECT_EQUAL(kGramsIn("^_^", 3), expected);
 }
 
-PROVIDED_TEST("kGramsIn works when the text length is one more than the k-gram length.") {
+PROVIDED_TEST("kGramsIn works when the text length is one more than the k-gram length.")
+{
     Map<string, double> expected = {
-        { "the", 1 },
-        { "hem", 1 }
-    };
+        {"the", 1},
+        {"hem", 1}};
 
     EXPECT_EQUAL(kGramsIn("them", 3), expected);
 }
 
-PROVIDED_TEST("kGramsIn works when the text length is one more than the k-gram length.") {
+PROVIDED_TEST("kGramsIn works when the text length is one more than the k-gram length.")
+{
     /* First check: when no k-grams are repeated. */
     Map<string, double> expected = {
-        { "the", 1 },
-        { "hem", 1 }
-    };
+        {"the", 1},
+        {"hem", 1}};
 
     EXPECT_EQUAL(kGramsIn("them", 3), expected);
 
     /* Next check: when the k-grams are repeated. */
     expected = {
-        { "aaa", 2 }
-    };
+        {"aaa", 2}};
 
     EXPECT_EQUAL(kGramsIn("aaaa", 3), expected);
 }
 
-PROVIDED_TEST("kGramsIn works on a sample when k = 1.") {
+PROVIDED_TEST("kGramsIn works on a sample when k = 1.")
+{
     Map<string, double> expected = {
-        { "A", 7 },
-        { "B", 2 },
-        { "D", 1 },
-        { "N", 4 },
+        {"A", 7},
+        {"B", 2},
+        {"D", 1},
+        {"N", 4},
     };
 
     EXPECT_EQUAL(kGramsIn("ABANANABANDANA", 1), expected);
 }
 
-PROVIDED_TEST("kGramsIn works on a sample when k = 2.") {
+PROVIDED_TEST("kGramsIn works on a sample when k = 2.")
+{
     Map<string, double> expected = {
-        { "AB", 2 },
-        { "AN", 4 },
-        { "BA", 2 },
-        { "DA", 1 },
-        { "NA", 3 },
-        { "ND", 1 }
-    };
+        {"AB", 2},
+        {"AN", 4},
+        {"BA", 2},
+        {"DA", 1},
+        {"NA", 3},
+        {"ND", 1}};
 
     EXPECT_EQUAL(kGramsIn("ABANANABANDANA", 2), expected);
 }
 
-PROVIDED_TEST("kGramsIn handles non-English strings.") {
+PROVIDED_TEST("kGramsIn handles non-English strings.")
+{
     /* The characters in these strings are expressed in UTF-8. This
      * means that splitting the string into k-grams will produce some
      * k-grams containing fragments of individual characters. See
@@ -122,11 +212,10 @@ PROVIDED_TEST("kGramsIn handles non-English strings.") {
      */
     string devanagari = "दे";
     Map<string, double> expected = {
-      {"\244\246\340", 1},
-      {"\246\340\245", 1},
-      {"\340\244\246", 1},
-      {"\340\245\207", 1}
-    };
+        {"\244\246\340", 1},
+        {"\246\340\245", 1},
+        {"\340\244\246", 1},
+        {"\340\245\207", 1}};
     EXPECT_EQUAL(kGramsIn(devanagari, 3), expected);
 
     string ktavAshuri = "דָג";
@@ -134,27 +223,28 @@ PROVIDED_TEST("kGramsIn handles non-English strings.") {
         {"\223\326\270", 1},
         {"\270\327\222", 1},
         {"\326\270\327", 1},
-        {"\327\223\326", 1}
-    };
+        {"\327\223\326", 1}};
     EXPECT_EQUAL(kGramsIn(ktavAshuri, 3), expected);
 }
 
-PROVIDED_TEST("kGramsIn works when the input is shorter than the k-gram length.") {
+PROVIDED_TEST("kGramsIn works when the input is shorter than the k-gram length.")
+{
     EXPECT_EQUAL(kGramsIn("ABANANABANDANA", 137), {});
 }
 
-PROVIDED_TEST("kGramsIn reports errors on bad inputs.") {
+PROVIDED_TEST("kGramsIn reports errors on bad inputs.")
+{
     EXPECT_ERROR(kGramsIn("Oops, negative", -137));
-    EXPECT_ERROR(kGramsIn("Oops, zero",     0));
+    EXPECT_ERROR(kGramsIn("Oops, zero", 0));
 }
 
-PROVIDED_TEST("normalize does not add or remove keys.") {
+PROVIDED_TEST("normalize does not add or remove keys.")
+{
     Map<string, double> incomplete = {
-        { "C", 1 },
-        { "O", 1 },
-        { "N", 1 },
-        { "E", 1 }
-    };
+        {"C", 1},
+        {"O", 1},
+        {"N", 1},
+        {"E", 1}};
 
     auto result = normalize(incomplete);
     EXPECT(result.containsKey("C"));
@@ -164,54 +254,58 @@ PROVIDED_TEST("normalize does not add or remove keys.") {
     EXPECT_EQUAL(result.size(), 4);
 }
 
-PROVIDED_TEST("normalize works on positive numbers.") {
+PROVIDED_TEST("normalize works on positive numbers.")
+{
     Map<string, double> scores = {
-        { "C", 1 },
-        { "O", 1 },
-        { "N", 1 },
-        { "E", 1 },
+        {"C", 1},
+        {"O", 1},
+        {"N", 1},
+        {"E", 1},
     };
     Map<string, double> expected = {
-        { "C", 0.5 },
-        { "O", 0.5 },
-        { "N", 0.5 },
-        { "E", 0.5 },
+        {"C", 0.5},
+        {"O", 0.5},
+        {"N", 0.5},
+        {"E", 0.5},
     };
 
     EXPECT_EQUAL(normalize(scores), expected);
 }
 
-PROVIDED_TEST("normalize works on negative numbers.") {
+PROVIDED_TEST("normalize works on negative numbers.")
+{
     Map<string, double> scores = {
-        { "C", -1 },
-        { "O", -1 },
-        { "N", -1 },
-        { "E", -1 },
+        {"C", -1},
+        {"O", -1},
+        {"N", -1},
+        {"E", -1},
     };
     Map<string, double> expected = {
-        { "C", -0.5 },
-        { "O", -0.5 },
-        { "N", -0.5 },
-        { "E", -0.5 },
+        {"C", -0.5},
+        {"O", -0.5},
+        {"N", -0.5},
+        {"E", -0.5},
     };
 
     EXPECT_EQUAL(normalize(scores), expected);
 }
 
-PROVIDED_TEST("normalize works on unequal values.") {
+PROVIDED_TEST("normalize works on unequal values.")
+{
     Map<string, double> scores = {
-        { "O",  3 },
-        { "N", -4 },
+        {"O", 3},
+        {"N", -4},
     };
     Map<string, double> expected = {
-        { "O",  0.6 },
-        { "N", -0.8 },
+        {"O", 0.6},
+        {"N", -0.8},
     };
 
     EXPECT_EQUAL(normalize(scores), expected);
 }
 
-PROVIDED_TEST("normalize works on huge numbers.") {
+PROVIDED_TEST("normalize works on huge numbers.")
+{
     /* As mentioned in the assignment description, the int type
      * is (usually) limited to a range of roughly negative two
      * billion to roughly positive two billion. The double type,
@@ -222,8 +316,7 @@ PROVIDED_TEST("normalize works on huge numbers.") {
      * to fail.
      */
     Map<string, double> scores = {
-        { "singleton", 1e18 }
-    };
+        {"singleton", 1e18}};
 
     auto result = normalize(scores);
     EXPECT_EQUAL(result.size(), 1);
@@ -237,21 +330,21 @@ PROVIDED_TEST("normalize works on huge numbers.") {
     EXPECT_GREATER_THAN_OR_EQUAL_TO(result["singleton"], 0.0);
 }
 
-PROVIDED_TEST("normalize reports errors on inputs that are all zero.") {
+PROVIDED_TEST("normalize reports errors on inputs that are all zero.")
+{
     EXPECT_ERROR(normalize({}));
     EXPECT_ERROR(normalize({{"A", 0}, {"C", 0}, {"E", 0}}));
 }
 
-PROVIDED_TEST("topKGramsIn finds the most frequent k-gram.") {
+PROVIDED_TEST("topKGramsIn finds the most frequent k-gram.")
+{
     Map<string, double> input = {
-        { "A", 10 },
-        { "B", 30 },
-        { "C", 20 }
-    };
+        {"A", 10},
+        {"B", 30},
+        {"C", 20}};
 
     Map<string, double> expected = {
-        { "B", 30 }
-    };
+        {"B", 30}};
 
     EXPECT_EQUAL(topKGramsIn(input, 1), expected);
 }

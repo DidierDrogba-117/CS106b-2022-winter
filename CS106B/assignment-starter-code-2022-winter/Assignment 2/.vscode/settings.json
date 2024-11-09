@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "string": "cpp",
+        "format": "cpp",
+        "chrono": "cpp",
+        "functional": "cpp",
+        "span": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "type_traits": "cpp"
+    }
+}
