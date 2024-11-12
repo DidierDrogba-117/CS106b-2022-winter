@@ -1,17 +1,59 @@
 #include "WhatAreYouDoing.h"
+#include "strlib.h" // for toUpperCase, toLowerCase
+#include <cctype>   // for isalpha
+#include "strlib.h"
 using namespace std;
 
-/* TODO: Read the comments in WhatAreYouDoing.h to see what this function needs to do, then
- * delete this comment.
- *
- * Don't forget about the tokenize function defined in WhatAreYouDoing.h; you'll almost
- * certainly want to use it.
- */
-Set<string> allEmphasesOf(const string& sentence) {
-    /* TODO: Delete this line and the next one, then implement this function. */
-    (void) sentence;
-    return {};
+
+
+
+
+/*helper method 
+check if it's a word
+add lower case, recusion, backtracking
+add upper case, recusion, backtracking
+*/
+
+void helper(const Vector <string>& tokens, int curr_index, Vector<string>& curr_ans, Set<string>& final_ans) {
+    // base case
+    if (curr_index == tokens.size()) {
+        final_ans.add(stringJoin(curr_ans, ""));
+        return;
+    }
+
+    // recursive case
+    // check isalpha
+    string curr_token = tokens[curr_index];
+    if (isalpha(curr_token[0])) {
+        // add lower case, recusion, backtracking
+        curr_ans.add(toLowerCase(curr_token));
+        helper(tokens, curr_index + 1, curr_ans, final_ans);
+        curr_ans.remove(curr_ans.size() - 1);
+        // add upper case, recusion, backtracking
+        curr_ans.add(toUpperCase(curr_token));
+        helper(tokens, curr_index + 1, curr_ans, final_ans);
+        curr_ans.remove(curr_ans.size() - 1);
+    }
+    else {
+        curr_ans.add(curr_token);
+        helper(tokens, curr_index + 1, curr_ans, final_ans);
+        curr_ans.remove(curr_ans.size() - 1);        
+    }
 }
+
+
+
+Set<string> allEmphasesOf(const string& sentence) {
+    Vector <string> tokens = tokenize(sentence);
+    Set<string> final_ans;    
+    Vector<string> curr_ans;
+    helper(tokens, 0, curr_ans, final_ans);
+    return final_ans;
+}
+
+
+
+
 
 /* * * * * * Test Cases * * * * * */
 #include "GUI/SimpleTest.h"

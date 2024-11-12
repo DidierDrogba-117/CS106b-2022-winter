@@ -1,4 +1,0 @@
-WINDOW_TITLE("Bag'O Big-O")
-
-RUN_TESTS_MENU_OPTION()
-MENU_ORDER("PerformanceGUI.cpp")
